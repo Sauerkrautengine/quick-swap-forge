@@ -33,7 +33,7 @@ public class QuickSwapHotkeys {
     private static KeyMapping elytraKey;
 
     public QuickSwapHotkeys(FMLJavaModLoadingContext context) {
-        RegisterKeyMappingsEvent.getBus(context.getModBusGroup()).addListener(QuickSwapHotkeys::registerKeys);
+        RegisterKeyMappingsEvent.BUS.addListener(QuickSwapHotkeys::registerKeys);
         TickEvent.ClientTickEvent.Post.BUS.addListener(QuickSwapHotkeys::onClientTick);
     }
 
