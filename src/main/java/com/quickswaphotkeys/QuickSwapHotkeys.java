@@ -1,7 +1,6 @@
 package com.quickswaphotkeys;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.logging.LogUtils;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -19,13 +18,11 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import org.slf4j.Logger;
 
 @Mod(QuickSwapHotkeys.MOD_ID)
 public class QuickSwapHotkeys {
 
     public static final String MOD_ID = "quick_swap_hotkeys";
-    private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int CHEST_SLOT = 6;
     private static final int INV_START = 9;
@@ -34,16 +31,13 @@ public class QuickSwapHotkeys {
 
     private static KeyMapping totemKey;
     private static KeyMapping elytraKey;
-    private static boolean tickLogged = false;
 
     public QuickSwapHotkeys(FMLJavaModLoadingContext context) {
-        LOGGER.info("[QuickSwap] constructor");
         RegisterKeyMappingsEvent.BUS.addListener(QuickSwapHotkeys::registerKeys);
         TickEvent.ClientTickEvent.Post.BUS.addListener(QuickSwapHotkeys::onClientTick);
     }
 
     private static void registerKeys(RegisterKeyMappingsEvent event) {
-        LOGGER.info("[QuickSwap] registering keys");
         KeyMapping.Category category = KeyMapping.Category.register(
                 Identifier.fromNamespaceAndPath(MOD_ID, "main"));
 
@@ -55,19 +49,13 @@ public class QuickSwapHotkeys {
     }
 
     private static void onClientTick(TickEvent.ClientTickEvent.Post event) {
-        if (!tickLogged) {
-            tickLogged = true;
-            LOGGER.info("[QuickSwap] tick handler is running");
-        }
         if (totemKey == null || elytraKey == null) return;
 
         Minecraft mc = Minecraft.getInstance();
         while (totemKey.consumeClick()) {
-            LOGGER.info("[QuickSwap] totem key pressed, ready={}", ready(mc));
             if (ready(mc)) equipTotem(mc, mc.player);
         }
         while (elytraKey.consumeClick()) {
-            LOGGER.info("[QuickSwap] elytra key pressed, ready={}", ready(mc));
             if (ready(mc)) swapChest(mc, mc.player);
         }
     }
@@ -78,19 +66,14 @@ public class QuickSwapHotkeys {
 
     private static void equipTotem(Minecraft mc, LocalPlayer player) {
         InventoryMenu menu = player.inventoryMenu;
-        if (menu.getSlot(OFFHAND_SLOT).getItem().is(Items.TOTEM_OF_UNDYING)) {
-            LOGGER.info("[QuickSwap] totem already in offhand");
-            return;
-        }
+        if (menu.getSlot(OFFHAND_SLOT).getItem().is(Items.TOTEM_OF_UNDYING)) return;
 
         for (int i = INV_START; i <= HOTBAR_END; i++) {
             if (menu.getSlot(i).getItem().is(Items.TOTEM_OF_UNDYING)) {
-                LOGGER.info("[QuickSwap] swapping totem from slot {}", i);
                 mc.gameMode.handleContainerInput(menu.containerId, i, 40, ContainerInput.SWAP, player);
                 return;
             }
         }
-        LOGGER.info("[QuickSwap] no totem found");
     }
 
     private static void swapChest(Minecraft mc, LocalPlayer player) {
@@ -117,12 +100,8 @@ public class QuickSwapHotkeys {
                 bestEnch = ench;
             }
         }
-        if (best == -1) {
-            LOGGER.info("[QuickSwap] no matching item found");
-            return;
-        }
+        if (best == -1) return;
 
-        LOGGER.info("[QuickSwap] swapping chest with slot {}", best);
         int id = menu.containerId;
         mc.gameMode.handleContainerInput(id, best, 0, ContainerInput.PICKUP, player);
         mc.gameMode.handleContainerInput(id, CHEST_SLOT, 0, ContainerInput.PICKUP, player);
